@@ -28,7 +28,7 @@ on:
         required: true
         default: main
 env:
-  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  GITHUB_TOKEN: ${{secrets.PODMAN_DESKTOP}}
   DEBUG: electron-builder
 
 jobs:
@@ -87,7 +87,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PODMAN_DESKTOP }}
         with:
           tag: ${{ steps.TAG_UTIL.outputs.githubTag }}
           name: ${{ steps.TAG_UTIL.outputs.githubTag }}
@@ -134,7 +134,7 @@ jobs:
           - os: "ubuntu-22.04"
     timeout-minutes: 60
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.PODMAN_DESKTOP }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -228,7 +228,7 @@ jobs:
       - name: Publish release
         uses: StuYarrow/publish-release@v1.1.2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PODMAN_DESKTOP }}
         with:
           id: ${{ needs.tag.outputs.releaseId}}
 
