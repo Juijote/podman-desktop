@@ -356,9 +356,9 @@ function hasAnyConfiguration(provider: ProviderInfo) {
 
 <SettingsPage title="Resources">
   <span slot="subtitle" class:hidden="{providers.length === 0}">
-    Additional provider information is available under <a
+    更多提供商信息请参见 <a
       href="/preferences/extensions"
-      class="text-gray-700 underline underline-offset-2">Extensions</a>
+      class="text-gray-700 underline underline-offset-2">扩展</a>
   </span>
   <div class="h-full" role="region" aria-label="Featured Provider Resources">
     <EmptyScreen
@@ -584,3 +584,5 @@ function hasAnyConfiguration(provider: ProviderInfo) {
       doCreateNew="{doCreateNew}" />
   {/if}
 </SettingsPage>
+
+<!-- 汉化修改 -->
