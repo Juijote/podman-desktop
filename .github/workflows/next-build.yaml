@@ -19,12 +19,12 @@ name: next build
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+#  push:
+#    branches:
+#      - main
 
 env:
-  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  GITHUB_TOKEN: ${{secrets.PODMAN_DESKTOP}}
   DEBUG: electron-builder
 
 jobs:
@@ -61,7 +61,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PODMAN_DESKTOP }}
         with:
           tag: ${{ steps.TAG_UTIL.outputs.githubTag }}
           name: ${{ steps.TAG_UTIL.outputs.githubTag }}
@@ -170,7 +170,7 @@ jobs:
       - name: Publish release
         uses: StuYarrow/publish-release@v1.1.2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PODMAN_DESKTOP }}
         with:
           id: ${{ needs.tag.outputs.releaseId}}
 
