@@ -1,0 +1,71 @@
+name: build-windows
+
+on:
+  workflow_dispatch:
+    # 如果需要在推送到主分支时触发工作流，请取消下面的注释
+    # push:
+    #   branches:
+    #     - main
+
+env:
+  GITHUB_TOKEN: ${{secrets.PODMAN_DESKTOP}}
+  DEBUG: electron-builder
+
+jobs:
+  tag:
+    name: 打标签
+    runs-on: ubuntu-22.04
+    outputs:
+      githubTag: ${{ steps.TAG_UTIL.outputs.githubTag}}
+      desktopVersion: ${{ steps.TAG_UTIL.outputs.desktopVersion}}
+      releaseId: ${{ steps.create_release.outputs.id}}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: 生成标签工具
+        id: TAG_UTIL
+        run: |
+            CURRENT_DAY=$(date +'%Y%m%d')
+            SHORT_SHA1=$(git rev-parse --short HEAD)
+            TAG_PATTERN=0.0.$(date +'%Y%m%d%H%M')-${SHORT_SHA1}
+            echo "githubTag=v$TAG_PATTERN" >> ${GITHUB_OUTPUT}
+            echo "desktopVersion=$TAG_PATTERN" >> ${GITHUB_OUTPUT}
+      - name: 打标签
+        run: |
+          git config --local user.name ${{ github.actor }}
+          sed -i  "s#version\":\ \"\(.*\)\",#version\":\ \"${{ steps.TAG_UTIL.outputs.desktopVersion }}\",#g" package.json
+          cat package.json
+          git add package.json
+          git commit -m "chore: tag ${{ steps.TAG_UTIL.outputs.githubTag }}"
+          echo "使用标签 ${{ steps.TAG_UTIL.outputs.githubTag }} 打标签"
+          git tag ${{ steps.TAG_UTIL.outputs.githubTag }}
+          git push origin ${{ steps.TAG_UTIL.outputs.githubTag }}
+      - name: 创建发布
+        id: create_release
+        uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PODMAN_DESKTOP }}
+        with:
+          tag: ${{ steps.TAG_UTIL.outputs.githubTag }}
+          name: ${{ steps.TAG_UTIL.outputs.githubTag }}
+          draft: true
+          prerelease: true
+
+  build:
+    name: 构建 / Windows
+    needs: tag
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: 使用 yarn
+        run: |
+          yarn --frozen-lockfile --network-timeout 180000
