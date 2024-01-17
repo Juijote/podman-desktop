@@ -52,12 +52,19 @@ jobs:
           prerelease: true
 
   build:
-    name: 构建 / Windows
+    name: Build / ${{ matrix.os }}
     needs: tag
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+#        os: [windows-2022, ubuntu-22.04, macos-12]
+        os: [windows-2022]
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.tag.outputs.githubTag}}
       - uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -66,6 +73,40 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: 使用 yarn
+      - name: Get yarn cache directory path (Windows)
+        if: ${{ matrix.os=='windows-2022' }}
+        id: yarn-cache-dir-path-windows
+        run: echo "dir=$(yarn cache dir)" >> ${env:GITHUB_OUTPUT}
+
+      - uses: actions/cache@v3
+        if: ${{ matrix.os=='windows-2022' }}
+        id: yarn-cache-windows
+        with:
+          path: ${{ steps.yarn-cache-dir-path-windows.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+
+      - name: yarn
         run: |
           yarn --frozen-lockfile --network-timeout 180000
+
+      - name: Run Build
+        timeout-minutes: 40
+        run: yarn compile:next
+
+  release:
+    needs: [tag, build]
+    name: Release
+    runs-on: ubuntu-22.04
+    steps:
+      - name: id
+        run: echo the release id is ${{ needs.tag.outputs.releaseId}}
+
+      - name: Publish release
+        uses: StuYarrow/publish-release@v1.1.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.PODMAN_DESKTOP }}
+        with:
+          id: ${{ needs.tag.outputs.releaseId}}
